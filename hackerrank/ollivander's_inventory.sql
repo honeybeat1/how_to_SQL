@@ -10,3 +10,46 @@ AND w.coins_needed = (select min(coins_needed)
                        group by w1.power, wp1.age
                       )
 order by w.power DESC, wp.age DESC
+
+
+select h.hacker_id, h.name, count(*)
+from Hackers h
+join Challenges c
+on h.hacker_id = c.hacker_id
+group by h.hacker_id, h.name
+having count(*) < 50
+order by count(*) DESC, h.hacker_id
+
+(select max(counted) from(
+                    select count(*) as counted
+                    from Hackers h
+                    join Challenges c
+                    on h.hacker_id = c.hacker_id
+                    group by h.hacker_id)as count_table)
+
+select h.hacker_id, h.name, count(*)
+from Hackers h
+join Challenges c on h.hacker_id = c.hacker_id
+group by h.hacker_id, h.name
+having count(*) in (select counted
+                    from (select h.hacker_id, count(*) as counted
+                    from Hackers h
+                    join Challenges c
+                    on h.hacker_id = c.hacker_id
+                    group by h.hacker_id) as count_table
+                    group by counted
+                    having count(hacker_id) = 1)
+order by count(*) DESC
+
+
+select h.hacker_id, h.name, count(*) as cnt
+from Hackers h
+join Challenges c on h.hacker_id = c.hacker_id
+group by h.hacker_id, h.name
+having cnt in (select count_table.counted
+                    from (select c.hacker_id, count(*) as counted
+                          from Challenges c
+                          group by c.hacker_id) as count_table
+                    group by count_table.counted
+                    having count(*) = 1)
+order by cnt DESC
